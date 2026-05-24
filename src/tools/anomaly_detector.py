@@ -1,6 +1,4 @@
 # src/tools/anomaly_detector.py
-"""Isolation Forest based anomaly detection tool."""
-
 from typing import Any, Dict, Optional
 
 import pandas as pd

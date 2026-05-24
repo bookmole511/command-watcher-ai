@@ -1,0 +1,70 @@
+[
+  {
+    "id": "sudo_usage_last_7_days",
+    "query": "지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?",
+    "expected_tool": "mysql",
+    "expected_operation": "command_count_by_user",
+    "expected_sql_contains": ["command LIKE '%sudo%'", "GROUP BY user_name", "ORDER BY command_count DESC"],
+    "expected_rows": [
+      {"user_name": "userC", "command_count": 1}
+    ]
+  },
+  {
+    "id": "failed_commands_by_user",
+    "query": "실패한 명령어가 가장 많은 사용자는 누구야?",
+    "expected_tool": "mysql",
+    "expected_operation": "failed_count_by_user",
+    "expected_sql_contains": ["exit_code != 0", "GROUP BY user_name"],
+    "expected_rows": [
+      {"user_name": "userB", "failed_count": 9},
+      {"user_name": "userC", "failed_count": 9}
+    ]
+  },
+  {
+    "id": "top_commands_overall",
+    "query": "전체에서 가장 많이 사용된 명령어 상위 목록을 보여줘",
+    "expected_tool": "mysql",
+    "expected_operation": "command_frequency",
+    "expected_sql_contains": ["GROUP BY command", "ORDER BY command_count DESC"],
+    "expected_rows": [
+      {"command": "cp model.pth /backup/", "command_count": 12}
+    ]
+  },
+  {
+    "id": "admin_top_commands",
+    "query": "admin이 가장 많이 사용한 명령어는 뭐야?",
+    "expected_tool": "mysql",
+    "expected_operation": "command_frequency",
+    "expected_sql_contains": ["user_name = 'admin'", "GROUP BY command"],
+    "expected_rows": [
+      {"command": "cat /var/log/auth.log", "command_count": 4},
+      {"command": "python train.py", "command_count": 4}
+    ]
+  },
+  {
+    "id": "top_client_ip",
+    "query": "가장 많이 접속한 클라이언트 IP를 알려줘",
+    "expected_tool": "mysql",
+    "expected_operation": "client_ip_frequency",
+    "expected_sql_contains": ["GROUP BY client_ip", "ORDER BY access_count DESC"],
+    "expected_rows": [
+      {"client_ip": "10.0.0.5", "access_count": 34}
+    ]
+  },
+  {
+    "id": "rm_rf_log_lookup",
+    "query": "rm -rf 로그 목록을 최신순으로 보여줘",
+    "expected_tool": "mysql",
+    "expected_operation": "list_logs",
+    "expected_sql_contains": ["command LIKE '%rm -rf%'", "ORDER BY timestamp DESC"],
+    "expected_rows": [
+      {"id": 108, "user_name": "userC", "command": "rm -rf /tmp/cache"}
+    ]
+  },
+  {
+    "id": "semantic_docker_pattern",
+    "query": "docker와 비슷한 운영 패턴 로그를 찾아줘",
+    "expected_tool": "chroma",
+    "expected_operation": "semantic_search"
+  }
+]

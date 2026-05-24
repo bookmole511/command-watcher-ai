@@ -1,0 +1,32 @@
+[
+  {
+    "id": "query_sudo_usage",
+    "query": "지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?",
+    "expected_intent": "query"
+  },
+  {
+    "id": "anomaly_admin_behavior",
+    "query": "admin 계정이 평소와 다르게 이상하게 행동하는 것 같아",
+    "expected_intent": "anomaly"
+  },
+  {
+    "id": "recommend_user_workflow",
+    "query": "user01에게 추천할 효율적인 명령어 워크플로우를 알려줘",
+    "expected_intent": "recommendation"
+  },
+  {
+    "id": "compliance_sudo_audit",
+    "query": "최근 sudo 사용 로그가 규정 위반인지 감사 관점에서 확인해줘",
+    "expected_intent": "compliance"
+  },
+  {
+    "id": "incident_rm_root_cause",
+    "query": "어제 발생한 rm -rf 사건의 근본 원인을 분석해줘",
+    "expected_intent": "incident"
+  },
+  {
+    "id": "general_system_help",
+    "query": "이 시스템은 어떤 일을 할 수 있어?",
+    "expected_intent": "general"
+  }
+]

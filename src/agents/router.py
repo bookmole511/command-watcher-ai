@@ -10,7 +10,7 @@ from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import PydanticOutputParser
 from src.utils import AgentIntent
 from src.prompts import PROMPTS   # 아직 prompts.py가 완성되지 않았으므로 아래에서 임시 정의
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 
 # ==================== Router Prompt (중앙 관리 예정) ====================
 ROUTER_PROMPT = """당신은 명령어 이력 분석 시스템의 Router입니다.
@@ -32,7 +32,7 @@ User query:
 """
 
 class RouterAgent:
-    def __init__(self, llm: ChatOllama):
+    def __init__(self, llm: Optional[ChatOllama], chain: Optional[Any] = None):
         self.llm = llm
         
         # Structured Output 설정
@@ -41,11 +41,7 @@ class RouterAgent:
         self.prompt = ChatPromptTemplate.from_template(ROUTER_PROMPT)
         
         # Chain 구성
-        self.chain = (
-            self.prompt
-            | self.llm
-            | self.parser
-        )
+        self.chain = chain if chain is not None else (self.prompt | self.llm | self.parser)
     
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Router 실행"""
@@ -65,7 +61,7 @@ class RouterAgent:
             
             # 메시지 추가
             from langchain_core.messages import AIMessage
-            state["messages"].append(
+            state.setdefault("messages", []).append(
                 AIMessage(content=f"Intent: {result.intent}\nReasoning: {result.reasoning}")
             )
             

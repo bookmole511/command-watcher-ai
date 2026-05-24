@@ -25,6 +25,7 @@ dist/
 # Logs and runtime output
 *.log
 logs/
+harness/results/
 
 # Local vector database artifacts
 chroma_db/
