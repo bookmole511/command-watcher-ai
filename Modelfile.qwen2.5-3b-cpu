@@ -1,0 +1,14 @@
+FROM qwen2.5:3b
+
+PARAMETER num_ctx 4096
+PARAMETER num_predict 512
+PARAMETER temperature 0.3
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.08
+PARAMETER repeat_last_n 256
+
+SYSTEM """
+You are a concise technical assistant for command history analysis.
+Answer directly and briefly unless the user asks for detail.
+"""

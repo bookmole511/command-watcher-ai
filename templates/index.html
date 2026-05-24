@@ -1,0 +1,68 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Watcher AI</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 20px; background: #f8f9fa; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #1e3a8a; }
+        textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        button { padding: 12px 24px; font-size: 16px; background: #1e40af; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #1e3a8a; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; min-height: 200px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Command Watcher AI</h1>
+        <p>서버 명령어 로그를 자연어로 분석해드립니다.</p>
+        
+        <textarea id="query" placeholder="예: 지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?"></textarea>
+        <br><br>
+        <button onclick="sendQuery()">분석하기</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            const queryText = document.getElementById('query').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!queryText) {
+                alert("질문을 입력해주세요.");
+                return;
+            }
+            
+            resultDiv.innerHTML = "<p>분석 중입니다... 잠시만 기다려주세요.</p>";
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: queryText })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <strong>Intent:</strong> ${data.intent}<br><br>
+                        <strong>답변:</strong><br>
+                        ${data.response}
+                        <hr>
+                        <small>소요시간: ${data.execution_time}초</small>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span style="color:red;">오류: ${data.error}</span>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<span style="color:red;">서버와의 통신에 실패했습니다.</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

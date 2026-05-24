@@ -1,0 +1,151 @@
+id,user_name,command,timestamp,current_dir,client_ip,server_ip,exit_code,session_id
+1,admin,ls -la,2026-05-12 08:15:00,/app,10.0.0.5,10.10.10.5,0,sess_admin_18
+2,admin,cat /var/log/auth.log,2026-05-07 01:01:00,/data/models,10.0.0.5,172.20.0.10,0,sess_admin_1
+3,userA,mv old.log new.log,2026-05-11 22:34:00,/tmp,10.0.0.5,172.20.0.11,0,sess_userA_1
+4,userA,mv old.log new.log,2026-05-07 10:17:00,/project,10.0.0.5,172.20.0.11,0,sess_userA_13
+5,admin,pip install torch,2026-05-14 11:38:00,/home/userA,192.168.1.10,10.10.10.5,0,sess_admin_4
+6,userC,free -h,2026-05-09 09:53:00,/var/log,10.10.10.5,172.20.0.10,0,sess_userC_2
+7,userA,df -h,2026-05-02 07:55:00,/data/models,203.0.113.5,172.20.0.11,0,sess_userA_12
+8,userA,pip install torch,2026-05-06 06:42:00,/home/userA,192.168.1.10,10.10.10.5,0,sess_userA_18
+9,userA,docker ps,2026-05-08 12:17:00,/models,10.0.0.5,10.10.10.5,0,sess_userA_2
+10,userA,ps aux | grep python,2026-05-13 10:25:00,/home/userA,192.168.1.10,172.20.0.10,1,sess_userA_19
+11,userB,top,2026-05-11 15:25:00,/build,10.0.0.5,172.20.0.11,0,sess_userB_18
+12,userB,python inference.py,2026-05-10 13:57:00,/tmp,172.16.0.20,172.20.0.10,2,sess_userB_5
+13,userC,free -h,2026-05-13 01:55:00,/data/models,10.0.0.5,10.10.10.5,0,sess_userC_14
+14,admin,"find / -name ""*.py""",2026-05-07 19:29:00,/models,172.16.0.20,10.10.10.5,1,sess_admin_1
+15,admin,du -sh /data,2026-05-15 17:48:00,/home/userA,172.16.0.20,172.20.0.10,0,sess_admin_6
+16,userC,ls -la,2026-05-12 23:16:00,/models,10.0.0.5,10.10.10.5,1,sess_userC_10
+17,userA,rm -rf /tmp/cache,2026-05-06 05:34:00,/models,192.168.1.10,10.10.10.5,0,sess_userA_1
+18,admin,pip install torch,2026-05-15 09:15:00,/data,10.0.0.5,10.10.10.5,1,sess_admin_3
+19,userC,free -h,2026-05-13 17:49:00,/project,10.0.0.5,10.10.10.5,0,sess_userC_18
+20,userA,git pull,2026-05-09 19:27:00,/app,10.10.10.5,10.10.10.5,0,sess_userA_10
+21,userC,du -sh /data,2026-05-11 11:28:00,/models,203.0.113.5,172.20.0.10,0,sess_userC_3
+22,userB,ls -la,2026-05-10 17:14:00,/app,192.168.1.10,172.20.0.10,0,sess_userB_2
+23,userA,free -h,2026-05-15 01:55:00,/var/log,192.168.1.10,10.10.10.5,0,sess_userA_16
+24,userA,sudo apt update,2026-05-03 23:59:00,/build,10.0.0.5,172.20.0.11,0,sess_userA_7
+25,admin,nvidia-smi,2026-05-11 13:22:00,/tmp,203.0.113.5,172.20.0.11,1,sess_admin_2
+26,admin,ps aux | grep python,2026-05-07 23:21:00,/data/models,10.0.0.5,172.20.0.10,0,sess_admin_15
+27,userA,cd /data,2026-05-03 08:29:00,/app,192.168.1.10,172.20.0.11,0,sess_userA_18
+28,admin,ps aux | grep python,2026-05-11 17:53:00,/data,192.168.1.10,172.20.0.10,0,sess_admin_16
+29,userC,top,2026-05-14 12:57:00,/data,10.0.0.5,172.20.0.11,0,sess_userC_13
+30,userB,cp model.pth /backup/,2026-05-05 13:44:00,/models,203.0.113.5,172.20.0.10,0,sess_userB_7
+31,admin,cat /var/log/auth.log,2026-05-12 17:03:00,/var/log,192.168.1.10,172.20.0.10,0,sess_admin_17
+32,userA,ps aux | grep python,2026-05-09 02:54:00,/project,192.168.1.10,10.10.10.5,0,sess_userA_8
+33,userC,nvidia-smi,2026-05-15 18:15:00,/data,10.10.10.5,172.20.0.10,0,sess_userC_19
+34,userB,git pull,2026-05-04 21:45:00,/var/log,10.0.0.5,172.20.0.11,0,sess_userB_10
+35,userC,tail -f error.log,2026-05-15 02:00:00,/build,10.10.10.5,10.10.10.5,2,sess_userC_3
+36,userA,jupyter notebook,2026-05-05 04:59:00,/var/log,192.168.1.10,172.20.0.10,0,sess_userA_6
+37,userC,sudo apt update,2026-05-12 09:39:00,/models,192.168.1.10,10.10.10.5,0,sess_userC_10
+38,admin,rm -rf /tmp/cache,2026-05-05 03:56:00,/data/models,10.10.10.5,172.20.0.10,0,sess_admin_20
+39,userA,mv old.log new.log,2026-05-06 06:43:00,/home/userA,10.10.10.5,172.20.0.11,0,sess_userA_2
+40,admin,htop,2026-05-07 08:02:00,/data,172.16.0.20,172.20.0.10,0,sess_admin_9
+41,userA,python inference.py,2026-05-08 17:45:00,/tmp,10.10.10.5,172.20.0.10,0,sess_userA_5
+42,admin,pip install torch,2026-05-10 17:09:00,/tmp,10.0.0.5,172.20.0.10,0,sess_admin_2
+43,userB,top,2026-05-11 07:42:00,/data/models,172.16.0.20,10.10.10.5,1,sess_userB_14
+44,userA,python train.py,2026-05-14 05:51:00,/project,203.0.113.5,172.20.0.10,0,sess_userA_11
+45,userC,du -sh /data,2026-05-14 23:51:00,/app,172.16.0.20,172.20.0.10,0,sess_userC_4
+46,userC,ps aux | grep python,2026-05-14 15:14:00,/app,203.0.113.5,172.20.0.11,0,sess_userC_8
+47,userA,ls -la,2026-05-11 06:25:00,/var/log,172.16.0.20,172.20.0.10,2,sess_userA_9
+48,userB,htop,2026-05-09 12:43:00,/models,172.16.0.20,172.20.0.10,0,sess_userB_9
+49,userA,cat /var/log/auth.log,2026-05-05 01:06:00,/tmp,172.16.0.20,10.10.10.5,0,sess_userA_14
+50,admin,"find / -name ""*.py""",2026-05-15 18:12:00,/home/userA,192.168.1.10,10.10.10.5,0,sess_admin_17
+51,userA,pip install torch,2026-05-07 02:42:00,/var/log,10.10.10.5,172.20.0.11,0,sess_userA_4
+52,userB,jupyter notebook,2026-05-05 21:26:00,/var/log,203.0.113.5,10.10.10.5,0,sess_userB_5
+53,userA,cd /data,2026-05-11 12:43:00,/project,10.10.10.5,10.10.10.5,0,sess_userA_18
+54,admin,df -h,2026-05-05 06:27:00,/var/log,203.0.113.5,172.20.0.11,0,sess_admin_7
+55,userC,python inference.py,2026-05-03 21:05:00,/home/userA,10.10.10.5,10.10.10.5,0,sess_userC_11
+56,admin,python train.py,2026-05-11 09:14:00,/app,10.0.0.5,172.20.0.10,0,sess_admin_16
+57,admin,cp model.pth /backup/,2026-05-07 20:36:00,/app,203.0.113.5,172.20.0.11,0,sess_admin_5
+58,admin,nvidia-smi,2026-05-13 13:14:00,/project,10.10.10.5,172.20.0.11,0,sess_admin_8
+59,admin,cp model.pth /backup/,2026-05-03 14:42:00,/models,10.10.10.5,10.10.10.5,0,sess_admin_15
+60,userC,sudo apt update,2026-05-08 05:47:00,/build,203.0.113.5,172.20.0.11,0,sess_userC_9
+61,userC,htop,2026-05-04 08:28:00,/data/models,172.16.0.20,172.20.0.10,0,sess_userC_11
+62,admin,rm -rf /tmp/cache,2026-05-03 07:24:00,/project,10.0.0.5,172.20.0.10,0,sess_admin_11
+63,userC,cd /data,2026-05-01 06:53:00,/tmp,203.0.113.5,10.10.10.5,1,sess_userC_1
+64,userC,"echo ""test"" > config.yaml",2026-05-01 11:19:00,/tmp,203.0.113.5,10.10.10.5,0,sess_userC_18
+65,userA,"echo ""test"" > config.yaml",2026-05-04 08:27:00,/build,192.168.1.10,172.20.0.11,0,sess_userA_13
+66,userA,cp model.pth /backup/,2026-05-15 04:39:00,/models,192.168.1.10,172.20.0.11,0,sess_userA_1
+67,admin,htop,2026-05-07 04:55:00,/build,10.0.0.5,172.20.0.10,0,sess_admin_11
+68,userA,cp model.pth /backup/,2026-05-06 10:48:00,/tmp,172.16.0.20,172.20.0.11,0,sess_userA_3
+69,userC,ls -la,2026-05-12 17:03:00,/var/log,10.0.0.5,10.10.10.5,0,sess_userC_2
+70,admin,python train.py,2026-05-04 00:39:00,/project,10.0.0.5,172.20.0.10,0,sess_admin_4
+71,userA,cp model.pth /backup/,2026-05-12 08:49:00,/var/log,10.0.0.5,10.10.10.5,0,sess_userA_4
+72,userA,df -h,2026-05-02 18:01:00,/home/userA,10.10.10.5,10.10.10.5,1,sess_userA_13
+73,userC,mv old.log new.log,2026-05-04 02:37:00,/app,192.168.1.10,10.10.10.5,0,sess_userC_20
+74,admin,cat /var/log/auth.log,2026-05-13 01:22:00,/models,203.0.113.5,10.10.10.5,0,sess_admin_17
+75,userB,ls -la,2026-05-14 13:52:00,/build,192.168.1.10,172.20.0.11,2,sess_userB_15
+76,userA,cd /data,2026-05-03 23:33:00,/home/userA,10.10.10.5,10.10.10.5,0,sess_userA_15
+77,userC,python inference.py,2026-05-10 08:20:00,/app,192.168.1.10,172.20.0.11,1,sess_userC_8
+78,userC,cat /var/log/auth.log,2026-05-10 21:24:00,/var/log,192.168.1.10,172.20.0.11,1,sess_userC_6
+79,userC,top,2026-05-06 08:21:00,/home/userA,10.10.10.5,10.10.10.5,1,sess_userC_18
+80,admin,jupyter notebook,2026-05-04 02:15:00,/tmp,203.0.113.5,10.10.10.5,0,sess_admin_16
+81,userC,cp model.pth /backup/,2026-05-13 00:05:00,/home/userA,10.0.0.5,172.20.0.11,0,sess_userC_10
+82,userB,"echo ""test"" > config.yaml",2026-05-09 16:22:00,/tmp,10.10.10.5,172.20.0.11,0,sess_userB_15
+83,userB,df -h,2026-05-05 07:07:00,/app,172.16.0.20,172.20.0.10,0,sess_userB_6
+84,userA,top,2026-05-12 15:17:00,/models,10.10.10.5,172.20.0.11,2,sess_userA_7
+85,userB,python train.py,2026-05-06 05:19:00,/data,10.10.10.5,172.20.0.10,0,sess_userB_2
+86,userB,mv old.log new.log,2026-05-03 20:55:00,/build,192.168.1.10,172.20.0.10,0,sess_userB_16
+87,userC,cp model.pth /backup/,2026-05-06 05:03:00,/home/userA,203.0.113.5,172.20.0.10,0,sess_userC_13
+88,userC,free -h,2026-05-10 20:43:00,/data,10.0.0.5,172.20.0.10,0,sess_userC_10
+89,admin,python train.py,2026-05-02 17:48:00,/tmp,10.10.10.5,10.10.10.5,0,sess_admin_8
+90,userC,cp model.pth /backup/,2026-05-15 14:19:00,/tmp,172.16.0.20,10.10.10.5,0,sess_userC_20
+91,admin,top,2026-05-11 06:16:00,/data/models,10.0.0.5,172.20.0.10,0,sess_admin_3
+92,userA,ls -la,2026-05-07 14:44:00,/build,172.16.0.20,172.20.0.10,0,sess_userA_10
+93,userC,free -h,2026-05-11 07:59:00,/home/userA,10.10.10.5,10.10.10.5,0,sess_userC_7
+94,userC,nvidia-smi,2026-05-09 07:41:00,/project,172.16.0.20,172.20.0.10,0,sess_userC_6
+95,userB,rm -f temp.log,2026-05-12 18:58:00,/home/userA,203.0.113.5,172.20.0.10,0,sess_userB_10
+96,userC,git pull,2026-05-09 17:31:00,/build,192.168.1.10,10.10.10.5,0,sess_userC_14
+97,userB,rm -f temp.log,2026-05-05 00:05:00,/app,10.10.10.5,10.10.10.5,2,sess_userB_9
+98,admin,docker ps,2026-05-08 16:41:00,/build,172.16.0.20,172.20.0.10,2,sess_admin_14
+99,userC,free -h,2026-05-08 11:26:00,/var/log,172.16.0.20,10.10.10.5,0,sess_userC_6
+100,userB,cd /data,2026-05-12 15:18:00,/tmp,10.10.10.5,172.20.0.10,0,sess_userB_11
+101,userB,tail -f error.log,2026-05-02 12:55:00,/models,192.168.1.10,10.10.10.5,1,sess_userB_15
+102,userC,ps aux | grep python,2026-05-04 16:23:00,/build,203.0.113.5,172.20.0.10,0,sess_userC_18
+103,userA,df -h,2026-05-08 22:31:00,/data/models,192.168.1.10,10.10.10.5,0,sess_userA_8
+104,userA,df -h,2026-05-09 00:35:00,/tmp,192.168.1.10,172.20.0.10,2,sess_userA_4
+105,userC,nvidia-smi,2026-05-11 04:31:00,/home/userA,10.10.10.5,10.10.10.5,0,sess_userC_16
+106,userC,python train.py,2026-05-08 17:09:00,/tmp,10.0.0.5,10.10.10.5,0,sess_userC_5
+107,admin,git pull,2026-05-13 13:21:00,/models,172.16.0.20,172.20.0.10,0,sess_admin_10
+108,userC,rm -rf /tmp/cache,2026-05-08 17:30:00,/var/log,172.16.0.20,10.10.10.5,0,sess_userC_13
+109,userC,tail -f error.log,2026-05-14 06:44:00,/app,10.10.10.5,172.20.0.11,0,sess_userC_14
+110,admin,tail -f error.log,2026-05-12 15:45:00,/tmp,203.0.113.5,10.10.10.5,0,sess_admin_5
+111,userC,ps aux | grep python,2026-05-03 16:37:00,/var/log,192.168.1.10,172.20.0.11,0,sess_userC_15
+112,admin,python inference.py,2026-05-03 13:55:00,/project,192.168.1.10,172.20.0.11,0,sess_admin_9
+113,userB,rm -f temp.log,2026-05-12 12:41:00,/data/models,172.16.0.20,10.10.10.5,1,sess_userB_13
+114,userB,htop,2026-05-12 15:55:00,/models,192.168.1.10,10.10.10.5,0,sess_userB_10
+115,userA,python inference.py,2026-05-02 13:06:00,/data/models,203.0.113.5,172.20.0.10,0,sess_userA_1
+116,admin,tail -f error.log,2026-05-13 01:18:00,/var/log,172.16.0.20,172.20.0.11,0,sess_admin_17
+117,userC,cat /var/log/auth.log,2026-05-11 05:10:00,/project,192.168.1.10,10.10.10.5,1,sess_userC_20
+118,userA,"echo ""test"" > config.yaml",2026-05-15 18:09:00,/app,203.0.113.5,10.10.10.5,0,sess_userA_9
+119,admin,cp model.pth /backup/,2026-05-15 09:43:00,/models,10.0.0.5,172.20.0.10,0,sess_admin_12
+120,userB,htop,2026-05-07 22:16:00,/build,172.16.0.20,172.20.0.10,2,sess_userB_16
+121,admin,python train.py,2026-05-07 18:22:00,/home/userA,172.16.0.20,172.20.0.10,2,sess_admin_13
+122,userB,ls -la,2026-05-10 21:49:00,/data,10.10.10.5,10.10.10.5,0,sess_userB_10
+123,userA,rm -f temp.log,2026-05-13 11:14:00,/app,10.10.10.5,172.20.0.11,0,sess_userA_5
+124,admin,htop,2026-05-11 01:19:00,/build,192.168.1.10,10.10.10.5,0,sess_admin_5
+125,admin,df -h,2026-05-06 23:26:00,/project,10.0.0.5,172.20.0.10,0,sess_admin_12
+126,userB,docker ps,2026-05-05 15:51:00,/home/userA,172.16.0.20,172.20.0.10,0,sess_userB_3
+127,userA,python train.py,2026-05-14 21:46:00,/tmp,10.10.10.5,172.20.0.11,0,sess_userA_13
+128,admin,git pull,2026-05-09 03:29:00,/var/log,172.16.0.20,10.10.10.5,0,sess_admin_12
+129,admin,du -sh /data,2026-05-04 15:01:00,/models,172.16.0.20,10.10.10.5,0,sess_admin_3
+130,userC,mv old.log new.log,2026-05-05 20:26:00,/data/models,10.0.0.5,172.20.0.10,1,sess_userC_10
+131,userC,nvidia-smi,2026-05-02 07:56:00,/models,10.0.0.5,172.20.0.11,0,sess_userC_18
+132,userC,cat /var/log/auth.log,2026-05-12 23:09:00,/tmp,192.168.1.10,172.20.0.11,0,sess_userC_9
+133,admin,mv old.log new.log,2026-05-06 06:28:00,/build,10.0.0.5,172.20.0.11,0,sess_admin_12
+134,userB,ps aux | grep python,2026-05-07 08:12:00,/data/models,203.0.113.5,172.20.0.10,0,sess_userB_20
+135,admin,ps aux | grep python,2026-05-13 10:15:00,/project,10.10.10.5,172.20.0.10,0,sess_admin_18
+136,userA,cat /var/log/auth.log,2026-05-04 07:21:00,/project,10.10.10.5,172.20.0.10,0,sess_userA_5
+137,userA,sudo apt update,2026-05-05 05:07:00,/data,10.0.0.5,172.20.0.10,0,sess_userA_8
+138,userB,ls -la,2026-05-03 08:03:00,/project,203.0.113.5,10.10.10.5,0,sess_userB_3
+139,userC,cp model.pth /backup/,2026-05-13 11:32:00,/data/models,203.0.113.5,10.10.10.5,0,sess_userC_20
+140,admin,python inference.py,2026-05-13 21:33:00,/home/userA,203.0.113.5,10.10.10.5,2,sess_admin_2
+141,userC,"find / -name ""*.py""",2026-05-07 21:06:00,/build,203.0.113.5,172.20.0.10,1,sess_userC_11
+142,userA,free -h,2026-05-03 08:39:00,/models,172.16.0.20,172.20.0.11,2,sess_userA_17
+143,userB,cp model.pth /backup/,2026-05-09 19:27:00,/data/models,192.168.1.10,10.10.10.5,0,sess_userB_18
+144,userA,cd /data,2026-05-08 07:26:00,/var/log,203.0.113.5,172.20.0.11,0,sess_userA_4
+145,userB,cd /data,2026-05-06 21:16:00,/var/log,10.0.0.5,10.10.10.5,1,sess_userB_3
+146,admin,free -h,2026-05-02 13:06:00,/var/log,10.0.0.5,10.10.10.5,0,sess_admin_18
+147,userB,du -sh /data,2026-05-02 13:22:00,/tmp,192.168.1.10,172.20.0.11,0,sess_userB_12
+148,admin,cat /var/log/auth.log,2026-05-09 06:09:00,/build,10.0.0.5,172.20.0.10,0,sess_admin_18
+149,userB,nvidia-smi,2026-05-13 08:36:00,/app,203.0.113.5,10.10.10.5,2,sess_userB_20
+150,admin,rm -f temp.log,2026-05-15 21:53:00,/home/userA,192.168.1.10,172.20.0.10,0,sess_admin_10
