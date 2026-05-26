@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 MYSQL_TOOL = "mysql"
 CHROMA_TOOL = "chroma"
+CHROMA_STATS_TOOL = "chroma_stats"
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,16 @@ COMMAND_HINTS = [
 def choose_query_plan(query: str) -> QueryPlan:
     normalized = query.lower()
 
+    if _looks_like_user_count(normalized):
+        if _mentions_chroma(normalized):
+            return QueryPlan(
+                tool=CHROMA_STATS_TOOL,
+                reason="Chroma DB user count needs metadata aggregation, not similarity search",
+                operation="chroma_user_count",
+                params={"include_users": True},
+            )
+        return _user_count_plan(query)
+
     if _is_semantic_search(normalized):
         return QueryPlan(
             tool=CHROMA_TOOL,
@@ -68,6 +79,16 @@ def choose_query_plan(query: str) -> QueryPlan:
 
     if any(token in normalized for token in ["많이", "가장", "상위", "top", "빈도", "횟수", "통계"]):
         return _command_frequency_plan(query)
+
+    if _looks_like_user_list(normalized):
+        if _mentions_chroma(normalized):
+            return QueryPlan(
+                tool=CHROMA_STATS_TOOL,
+                reason="Chroma DB user list needs metadata aggregation, not similarity search",
+                operation="chroma_user_list",
+                params={"include_users": True},
+            )
+        return _user_list_plan(query)
 
     if command_hint:
         return _list_logs_plan(query, command_hint)
@@ -92,6 +113,29 @@ def _is_semantic_search(normalized: str) -> bool:
 
 def _looks_like_count_or_ranking(normalized: str) -> bool:
     return any(token in normalized for token in ["가장", "많이", "상위", "top", "횟수", "몇", "통계", "빈도"])
+
+
+def _mentions_chroma(normalized: str) -> bool:
+    return any(
+        token in normalized
+        for token in ["chroma", "chroma_db", "chromadb", "vector db", "vectordb", "벡터db", "벡터 db"]
+    )
+
+
+def _looks_like_user_count(normalized: str) -> bool:
+    user_tokens = ["사용자", "유저", "user", "users", "계정"]
+    count_tokens = ["몇 명", "몇명", "사용자 수", "유저 수", "user count", "users count", "몇 개", "몇개", "총"]
+    return any(token in normalized for token in user_tokens) and any(
+        token in normalized for token in count_tokens
+    )
+
+
+def _looks_like_user_list(normalized: str) -> bool:
+    user_tokens = ["사용자", "유저", "user", "users", "계정"]
+    list_tokens = ["목록", "리스트", "명단", "누구", "누가", "보여", "알려"]
+    return any(token in normalized for token in user_tokens) and any(
+        token in normalized for token in list_tokens
+    )
 
 
 def _detect_days(query: str) -> Optional[int]:
@@ -152,6 +196,40 @@ LIMIT {params["limit"]}
         tool=MYSQL_TOOL,
         reason="command usage ranking needs exact aggregation",
         operation="command_count_by_user",
+        sql=sql,
+        params=params,
+    )
+
+
+def _user_count_plan(query: str) -> QueryPlan:
+    params = {"days": _detect_days(query)}
+    sql = f"""
+SELECT COUNT(DISTINCT user_name) AS user_count
+FROM command_history
+{_where_sql(params)}
+""".strip()
+    return QueryPlan(
+        tool=MYSQL_TOOL,
+        reason="distinct user count needs exact aggregation",
+        operation="user_count",
+        sql=sql,
+        params=params,
+    )
+
+
+def _user_list_plan(query: str) -> QueryPlan:
+    params = {"days": _detect_days(query)}
+    sql = f"""
+SELECT user_name, COUNT(*) AS command_count
+FROM command_history
+{_where_sql(params)}
+GROUP BY user_name
+ORDER BY user_name ASC
+""".strip()
+    return QueryPlan(
+        tool=MYSQL_TOOL,
+        reason="user list needs exact grouping",
+        operation="user_list",
         sql=sql,
         params=params,
     )

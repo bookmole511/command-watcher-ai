@@ -86,7 +86,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 
 # ==================== Project settings ====================
 DEBUG = _env_bool("DEBUG", True)
-MAX_ROWS_FOR_ANALYSIS = _env_int("MAX_ROWS_FOR_ANALYSIS", 10000)
+MAX_ROWS_FOR_ANALYSIS = _env_int("MAX_ROWS_FOR_ANALYSIS", 3000)
 
 # ==================== FastAPI settings ====================
 API_HOST = os.getenv("API_HOST", "0.0.0.0")

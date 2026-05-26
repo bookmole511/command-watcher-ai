@@ -35,3 +35,7 @@ chroma_db/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Data files
+data/
+*.csv

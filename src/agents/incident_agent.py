@@ -58,9 +58,29 @@ class IncidentResult(BaseModel):
 # =============================================================================
 # 쿼리 파싱 헬퍼
 # =============================================================================
-USER_RE = re.compile(r"\b(admin|root|user[A-Za-z0-9_]+)\b", re.IGNORECASE)
+USER_RE = re.compile(
+    r"\b(admin|root|hacker|user[A-Za-z0-9_]+|dev\d+|appmgr\d+|dba\d+)\b",
+    re.IGNORECASE,
+)
 DAYS_RE = re.compile(r"(\d+)\s*(?:일|days?)", re.IGNORECASE)
-SESSION_RE = re.compile(r"(sess_[A-Za-z0-9_]+)", re.IGNORECASE)
+SESSION_RE = re.compile(
+    r"\b(sess_[A-Za-z0-9_]+|hacked-[A-Za-z0-9_-]+|[a-f0-9]{8,})\b",
+    re.IGNORECASE,
+)
+
+RISK_COMMAND_CONDITIONS = [
+    "command LIKE '%sudo%'",
+    "command LIKE '%rm -rf%'",
+    "command LIKE '%chmod 777%'",
+    "command LIKE '%chown %'",
+    "command LIKE '%/etc/passwd%'",
+    "command LIKE '%/etc/shadow%'",
+    "command LIKE '%iptables%'",
+    "command LIKE '%curl %'",
+    "command LIKE '%wget %'",
+    "command LIKE '%nc %'",
+    "command LIKE '%netcat%'",
+]
 
 
 def _parse_incident_context(query: str) -> Dict[str, Any]:
@@ -83,8 +103,13 @@ def _build_timeline_sql(ctx: Dict[str, Any], limit: int = 60) -> str:
     if ctx.get("session_id"):
         clauses.append(f"session_id = '{_escape_sql(ctx['session_id'])}'")
 
-    where = " AND ".join(clauses) if clauses else "1=1"
-    where += f" AND timestamp >= (SELECT MAX(timestamp) FROM command_history) - INTERVAL {ctx['days']} DAY"
+    clauses.append(
+        f"timestamp >= (SELECT MAX(timestamp) FROM command_history) - INTERVAL {ctx['days']} DAY"
+    )
+    if not ctx.get("user_name") and not ctx.get("session_id"):
+        clauses.append(f"({_suspicious_condition_sql()})")
+
+    where = " AND ".join(clauses)
 
     return f"""
 SELECT timestamp, user_name, command, exit_code, client_ip, server_ip, session_id, current_dir
@@ -120,15 +145,18 @@ def _detect_attack_paths(timeline: List[TimelineEvent]) -> List[str]:
     paths: List[str] = []
     cmd_sequence = [e.command.lower() for e in timeline]
 
-    # wget/curl → chmod → 실행 패턴
-    for i in range(len(cmd_sequence) - 2):
+    # wget/curl -> chmod pattern
+    for i in range(len(cmd_sequence) - 1):
         if any(x in cmd_sequence[i] for x in ["wget", "curl"]) and "chmod" in cmd_sequence[i + 1]:
-            paths.append(f"Download → Permission Change: {timeline[i].command} → {timeline[i+1].command}")
+            paths.append(f"Download -> Permission Change: {timeline[i].command} -> {timeline[i+1].command}")
 
-    # base64 디코딩 후 실행
     for i, cmd in enumerate(cmd_sequence):
         if "base64" in cmd and i + 1 < len(cmd_sequence):
             paths.append(f"Obfuscation detected: {timeline[i].command}")
+        if "nc " in cmd or "netcat" in cmd:
+            paths.append(f"Possible listener/backdoor command: {timeline[i].command}")
+        if "/etc/shadow" in cmd or "/etc/passwd" in cmd:
+            paths.append(f"Sensitive account file access: {timeline[i].command}")
 
     return paths[:5] or ["명확한 공격 체인 패턴이 탐지되지 않았습니다."]
 
@@ -161,7 +189,55 @@ def _generate_root_cause_candidates(timeline: List[TimelineEvent], chroma_contex
             )
         )
 
+    risky = [
+        e
+        for e in timeline
+        if any(token in e.command.lower() for token in ["curl ", "wget ", "nc ", "/etc/shadow", "/etc/passwd", "sudo -l"])
+    ]
+    if risky:
+        candidates.append(
+            RootCauseCandidate(
+                description=f"{risky[0].user_name} 사용자의 위험 명령어 실행",
+                confidence=0.75,
+                supporting_evidence=[risky[0].command],
+            )
+        )
+
     return candidates
+
+
+def _suspicious_condition_sql() -> str:
+    external_ip = (
+        "client_ip NOT LIKE '10.%' AND "
+        "client_ip NOT LIKE '172.16.%' AND "
+        "client_ip NOT LIKE '192.168.%'"
+    )
+    return f"exit_code != 0 OR {_risk_condition_sql()} OR ({external_ip})"
+
+
+def _risk_condition_sql() -> str:
+    return " OR ".join(RISK_COMMAND_CONDITIONS)
+
+
+def _incident_subject(ctx: Dict[str, Any], timeline: List[TimelineEvent]) -> str:
+    if ctx.get("user_name"):
+        return str(ctx["user_name"])
+    if not timeline:
+        return "Unknown user"
+
+    scores: Dict[str, int] = {}
+    for event in timeline:
+        score = 1
+        command = event.command.lower()
+        if event.exit_code != 0:
+            score += 2
+        if any(token in command for token in ["curl ", "wget ", "nc ", "/etc/shadow", "/etc/passwd", "sudo -l"]):
+            score += 4
+        if event.client_ip and not event.client_ip.startswith(("10.", "172.16.", "192.168.")):
+            score += 3
+        scores[event.user_name] = scores.get(event.user_name, 0) + score
+
+    return max(scores.items(), key=lambda item: item[1])[0] if scores else "Unknown user"
 
 
 # =============================================================================
@@ -230,8 +306,9 @@ class IncidentAgent:
         attack_paths = _detect_attack_paths(timeline)
         root_causes = _generate_root_cause_candidates(timeline, chroma_result)
 
+        subject = _incident_subject(ctx, timeline)
         incident_summary = (
-            f"{ctx.get('user_name') or 'Unknown user'} 관련 인시던트 "
+            f"{subject} 관련 의심 인시던트 "
             f"(최근 {ctx['days']}일, 세션: {ctx.get('session_id') or 'N/A'})"
         )
 
@@ -246,24 +323,12 @@ class IncidentAgent:
                 "해당 사용자 계정 비밀번호 및 SSH 키 교체 검토",
                 "관련 IP에 대한 방화벽/IDS 룰 추가",
             ],
-            analysis_window={"days": ctx["days"], "user": ctx.get("user_name"), "session": ctx.get("session_id")},
+            analysis_window={"days": ctx["days"], "user": subject, "session": ctx.get("session_id")},
         )
 
-        # 4. LLM으로 고품질 조사 보고서 생성
-        try:
-            chain = self.prompt | self.llm
-            llm_resp = chain.invoke(
-                {
-                    "query": query,
-                    "incident_summary": result.incident_summary,
-                    "timeline_sample": safe_json_dumps([e.model_dump() for e in timeline[:15]]),
-                    "attack_paths": safe_json_dumps(attack_paths),
-                    "root_causes": safe_json_dumps([r.model_dump() for r in root_causes]),
-                }
-            )
-            final_report = llm_resp.content
-        except Exception as e:
-            final_report = f"조사 보고서 생성 중 오류: {str(e)}\n\n기본 요약:\n{result.incident_summary}"
+        # Use a deterministic evidence-based report so the incident conclusion
+        # cannot contradict the structured timeline and root-cause candidates.
+        final_report = _format_incident_for_user(result)
 
         # State 저장
         payload = result.model_dump() if hasattr(result, "model_dump") else result.dict()
@@ -282,4 +347,55 @@ class IncidentAgent:
         state.setdefault("messages", []).append(AIMessage(content=final_report))
 
         return state
+
+
+def _format_incident_for_user(result: IncidentResult) -> str:
+    lines: List[str] = [
+        "## 인시던트 조사 결과",
+        "",
+        f"**요약:** {result.incident_summary}",
+        f"**증거 요약:** {result.evidence_summary}",
+        "",
+    ]
+
+    if result.timeline:
+        lines.append("### 주요 타임라인")
+        for event in result.timeline[:12]:
+            lines.append(
+                f"- `{event.timestamp}` `{event.user_name}` @ `{event.client_ip or 'N/A'}` "
+                f"`{event.command}` (exit `{event.exit_code}`, session `{event.session_id or 'N/A'}`)"
+            )
+        lines.append("")
+    else:
+        lines.extend(
+            [
+                "### 주요 타임라인",
+                "- 조건에 맞는 의심 로그가 없습니다.",
+                "",
+            ]
+        )
+
+    if result.root_cause_candidates:
+        lines.append("### 근본 원인 후보")
+        for candidate in result.root_cause_candidates:
+            evidence = ", ".join(f"`{item}`" for item in candidate.supporting_evidence[:3])
+            lines.append(
+                f"- {candidate.description} "
+                f"(신뢰도 `{candidate.confidence:.2f}`"
+                f"{', 증거 ' + evidence if evidence else ''})"
+            )
+        lines.append("")
+
+    if result.attack_paths:
+        lines.append("### 공격 경로 단서")
+        for path in result.attack_paths:
+            lines.append(f"- {path}")
+        lines.append("")
+
+    if result.recommendations:
+        lines.append("### 권고사항")
+        for index, recommendation in enumerate(result.recommendations, 1):
+            lines.append(f"{index}. {recommendation}")
+
+    return "\n".join(lines).strip()
 

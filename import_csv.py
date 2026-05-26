@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from src.config import DB_HOST, DB_NAME, DB_PORT, DB_URL, DB_USER
 
 
-CSV_PATH = "data/sample_commands.csv"
+CSV_PATH = "data/command_history_with_hacker.csv"
 IF_EXISTS = "append"
 HEADER = 0
 
@@ -36,17 +36,17 @@ def import_csv_to_command_history(
     df = pd.read_csv(
         csv_path,
         header=header,
-        names=[
-            "id",
-            "user_name",
-            "command",
-            "timestamp",
-            "current_dir",
-            "client_ip",
-            "server_ip",
-            "exit_code",
-            "session_id",
-        ],
+        # names=[
+        #     "id",
+        #     "user_name",
+        #     "command",
+        #     "timestamp",
+        #     "current_dir",
+        #     "client_ip",
+        #     "server_ip",
+        #     "exit_code",
+        #     "session_id",
+        # ],
         parse_dates=["timestamp"],
     )
 
