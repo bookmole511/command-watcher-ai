@@ -6,7 +6,7 @@ Router → Conditional Routing → Specialized Agent
 
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Agent 임포트
 from src.agents.router import RouterAgent
@@ -16,19 +16,38 @@ from src.agents.recommendation_agent import RecommendationAgent
 from src.agents.compliance_agent import ComplianceAgent
 from src.agents.incident_agent import IncidentAgent
 from src.graph.state import create_initial_state
+from src.tools.mysql_tool import mysql_query_tool
+from src.tools.chroma_retriever import chroma_retriever
 
 
 class CommandWatcherWorkflow:
-    def __init__(self, llm):
+    def __init__(self, llm, tools: Optional[dict] = None, prompts: Optional[dict] = None):
         self.llm = llm
+        tools = tools or {}
+        prompts = prompts or {}
         
         # Agent 인스턴스 생성 (단일 LLM 공유)
         self.router = RouterAgent(llm)
         self.anomaly_agent = AnomalyAgent(llm)
         self.query_agent = QueryAgent(llm)
         self.recommendation_agent = RecommendationAgent(llm)
-        self.compliance_agent = ComplianceAgent(llm)
-        self.incident_agent = IncidentAgent(llm)
+        
+        # 안전한 tool 추출 (None 방지)
+        mysql_tool = tools.get("mysql_tool") or mysql_query_tool
+        chroma_tool = tools.get("chroma_tool") or chroma_retriever
+        
+        # Compliance / Incident Agent (tools / prompts 주입 지원 + None 안전 처리)
+        self.compliance_agent = ComplianceAgent(
+            llm, 
+            mysql_tool=mysql_tool, 
+            prompts=prompts
+        )
+        self.incident_agent = IncidentAgent(
+            llm, 
+            mysql_tool=mysql_tool, 
+            chroma_tool=chroma_tool, 
+            prompts=prompts
+        )
         
         # StateGraph 구축
         self.workflow = self._build_graph()

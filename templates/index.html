@@ -1,68 +1,847 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Command Watcher AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Markdown 렌더링 (Compliance, Incident 등에서 Markdown 응답 지원) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; margin: 20px; background: #f8f9fa; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #1e3a8a; }
-        textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        button { padding: 12px 24px; font-size: 16px; background: #1e40af; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        button:hover { background: #1e3a8a; }
-        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; min-height: 200px; white-space: pre-wrap; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap');
+        
+        :root {
+            --primary: #1e40af;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+        }
+        
+        .section-title {
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        
+        .intent-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        
+        .result-card {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+        
+        .log-line {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .example-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .example-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .history-item {
+            transition: background-color 0.1s ease;
+        }
+        
+        .history-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .prose-response {
+            line-height: 1.75;
+            color: #1e293b;
+        }
+        
+        .prose-response h1, .prose-response h2, .prose-response h3, .prose-response h4 {
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+            line-height: 1.25;
+        }
+        .prose-response h1 { font-size: 1.5rem; }
+        .prose-response h2 { font-size: 1.25rem; }
+        .prose-response h3 { font-size: 1.1rem; }
+        
+        .prose-response p {
+            margin-bottom: 0.75em;
+        }
+        
+        .prose-response ul, .prose-response ol {
+            padding-left: 1.25rem;
+            margin-bottom: 0.75em;
+        }
+        
+        .prose-response li {
+            margin-bottom: 0.25em;
+        }
+        
+        .prose-response ul li {
+            list-style-type: disc;
+        }
+        
+        .prose-response ol li {
+            list-style-type: decimal;
+        }
+        
+        .prose-response code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 0.1em 0.4em;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+        }
+        
+        .prose-response pre {
+            background: #0f172a;
+            color: #e0f2fe;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 0.75em 0;
+            font-size: 0.875em;
+            line-height: 1.5;
+        }
+        
+        .prose-response pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: inherit;
+        }
+        
+        .prose-response blockquote {
+            border-left: 4px solid #64748b;
+            padding-left: 1rem;
+            margin: 0.75em 0;
+            color: #475569;
+            font-style: italic;
+        }
+        
+        .prose-response table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75em 0;
+            font-size: 0.9em;
+        }
+        
+        .prose-response th, .prose-response td {
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        
+        .prose-response th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        
+        .prose-response a {
+            color: #1e40af;
+            text-decoration: underline;
+        }
+        
+        .nav-active {
+            background-color: #1e40af;
+            color: white;
+            border-radius: 0.5rem;
+        }
+        
+        .metric {
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+        }
+        
+        .command-text {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background: #f1f5f9;
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: #334155;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🛠️ Command Watcher AI</h1>
-        <p>서버 명령어 로그를 자연어로 분석해드립니다.</p>
-        
-        <textarea id="query" placeholder="예: 지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?"></textarea>
-        <br><br>
-        <button onclick="sendQuery()">분석하기</button>
-        
-        <div id="result"></div>
+<body class="bg-slate-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-700 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i class="fa-solid fa-terminal text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-2xl tracking-tighter text-slate-900">Command Watcher</div>
+                        <div class="text-[10px] text-slate-500 -mt-1 font-medium tracking-[1px]">AI AGENT SYSTEM</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-4">
+                    <!-- Model Info -->
+                    <div class="hidden md:flex items-center gap-x-2 px-3 py-1.5 bg-slate-100 rounded-full text-xs">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span class="font-medium text-slate-600">qwen2.5:3b</span>
+                        <span class="text-slate-400">•</span>
+                        <span class="text-slate-500">Ollama</span>
+                    </div>
+                    
+                    <button onclick="clearAllHistory()" 
+                            class="px-4 py-2 text-sm flex items-center gap-x-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                        <span class="hidden sm:inline text-sm font-medium">히스토리 초기화</span>
+                    </button>
+                    
+                    <button onclick="window.location.reload()" 
+                            class="px-4 py-2 flex items-center gap-x-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium transition-all active:scale-[0.985]">
+                        <i class="fa-solid fa-sync-alt"></i>
+                        <span class="hidden sm:inline">새로고침</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-screen-2xl mx-auto px-6 pt-8 pb-12">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-end justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tighter text-slate-900">서버 명령어 분석 AI</h1>
+                    <p class="mt-2 text-lg text-slate-600">자연어로 로그를 조회하고, 이상 행동을 탐지하며, 최적의 워크플로우를 추천받으세요.</p>
+                </div>
+                <div class="hidden xl:flex items-center gap-2 text-xs bg-white px-4 h-9 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex -space-x-1">
+                        <div class="w-5 h-5 bg-red-500 rounded-full ring-2 ring-white"></div>
+                        <div class="w-5 h-5 bg-emerald-500 rounded-full ring-2 ring-white"></div>
+                        <div class="w-5 h-5 bg-blue-500 rounded-full ring-2 ring-white"></div>
+                    </div>
+                    <span class="font-medium text-slate-500">5개 전문 에이전트 작동 중</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intent Examples -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="section-title">빠른 예시로 시작하기</div>
+                <div class="text-xs text-slate-400">클릭하면 입력창에 채워집니다</div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <!-- Anomaly -->
+                <div onclick="useExample('admin 계정이 평소와 다르게 이상하게 행동하는 것 같아')" 
+                     class="example-card cursor-pointer bg-white border border-red-100 hover:border-red-200 rounded-2xl p-4 group">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-7 h-7 flex-shrink-0 bg-red-100 text-red-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="font-semibold text-red-600 text-sm">Anomaly</div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-snug">admin 계정이 평소와 다르게 이상하게 행동하는 것 같아</div>
+                </div>
+                
+                <!-- Recommendation -->
+                <div onclick="useExample('user01에게 추천할 효율적인 명령어 워크플로우를 알려줘')" 
+                     class="example-card cursor-pointer bg-white border border-emerald-100 hover:border-emerald-200 rounded-2xl p-4 group">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-7 h-7 flex-shrink-0 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+                        <div class="font-semibold text-emerald-600 text-sm">Recommendation</div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-snug">user01에게 추천할 효율적인 명령어 워크플로우 알려줘</div>
+                </div>
+                
+                <!-- Query -->
+                <div onclick="useExample('지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?')" 
+                     class="example-card cursor-pointer bg-white border border-blue-100 hover:border-blue-200 rounded-2xl p-4 group">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-7 h-7 flex-shrink-0 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-search"></i>
+                        </div>
+                        <div class="font-semibold text-blue-600 text-sm">Query</div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-snug">지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?</div>
+                </div>
+                
+                <!-- Compliance -->
+                <div onclick="useExample('최근 sudo 사용 로그가 규정 위반인지 감사 관점에서 확인해줘')" 
+                     class="example-card cursor-pointer bg-white border border-violet-100 hover:border-violet-200 rounded-2xl p-4 group">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-7 h-7 flex-shrink-0 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-balance-scale"></i>
+                        </div>
+                        <div class="font-semibold text-violet-600 text-sm">Compliance</div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-snug">sudo 사용 로그가 규정 위반인지 감사 관점에서 확인</div>
+                </div>
+                
+                <!-- Incident -->
+                <div onclick="useExample('어제 발생한 rm -rf 사건의 근본 원인을 분석해줘')" 
+                     class="example-card cursor-pointer bg-white border border-amber-100 hover:border-amber-200 rounded-2xl p-4 group">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-7 h-7 flex-shrink-0 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-bug"></i>
+                        </div>
+                        <div class="font-semibold text-amber-600 text-sm">Incident</div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-snug">어제 발생한 rm -rf 사건의 근본 원인을 분석해줘</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <!-- Main Query Area -->
+            <div class="xl:col-span-7">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <!-- Composer Header -->
+                    <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b">
+                        <div>
+                            <div class="font-semibold text-lg text-slate-800">자연어 질문 입력</div>
+                            <div class="text-xs text-slate-500">Router가 의도를 자동 판단합니다</div>
+                        </div>
+                        <div class="text-xs px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg font-mono">Cmd/Ctrl + Enter</div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <textarea id="query-input" rows="3"
+                                  class="w-full resize-y min-h-[92px] border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all rounded-2xl px-5 py-4 text-[15px] placeholder:text-slate-400"
+                                  placeholder="예: 지난 14일 동안 실패한 명령어가 많은 사용자는 누구인가요?&#10;또는: docker 관련 효율적인 워크플로우 추천해줘"></textarea>
+                        
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center gap-x-2 text-xs text-slate-500">
+                                <i class="fa-solid fa-info-circle"></i>
+                                <span>구체적인 사용자명이나 기간을 포함하면 더 정확합니다.</span>
+                            </div>
+                            
+                            <button onclick="submitQuery()"
+                                    class="group flex items-center gap-x-3 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 transition-all text-white px-8 py-3 rounded-2xl font-semibold text-sm shadow-lg shadow-blue-600/25">
+                                <span>분석 실행</span>
+                                <i class="fa-solid fa-arrow-right group-active:translate-x-0.5 transition"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result Area -->
+                <div id="result-section" class="hidden mt-6">
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <div class="section-title">분석 결과</div>
+                        <div id="result-meta" class="flex items-center gap-2 text-xs"></div>
+                    </div>
+                    
+                    <!-- Result Card -->
+                    <div class="result-card bg-white border border-slate-200 rounded-3xl overflow-hidden">
+                        <!-- Intent Header -->
+                        <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+                            <div class="flex items-center gap-x-3">
+                                <div id="intent-badge" 
+                                     class="intent-badge px-4 py-1 text-sm font-semibold"></div>
+                                <div id="intent-reason" class="text-xs text-slate-500 max-w-[280px] truncate"></div>
+                            </div>
+                            <div class="flex items-center gap-x-2 text-xs">
+                                <div class="flex items-center gap-x-1.5 bg-white px-3 h-7 rounded-full border border-slate-200">
+                                    <i class="fa-solid fa-clock text-slate-400"></i>
+                                    <span id="exec-time" class="font-medium text-slate-700"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Response Content -->
+                        <div class="px-6 py-6">
+                            <div id="response-content" 
+                                 class="prose-response text-[15px] leading-relaxed whitespace-pre-wrap text-slate-800"></div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="px-6 py-4 border-t bg-slate-50 flex items-center gap-x-2">
+                            <button onclick="copyResponse()" 
+                                    class="flex items-center gap-x-2 px-4 h-9 text-sm font-medium rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                                <i class="fa-solid fa-copy"></i>
+                                <span>응답 복사</span>
+                            </button>
+                            
+                            <button onclick="runAgain()" 
+                                    class="flex items-center gap-x-2 px-4 h-9 text-sm font-medium rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                                <i class="fa-solid fa-redo"></i>
+                                <span>다시 실행</span>
+                            </button>
+                            
+                            <div class="flex-1"></div>
+                            
+                            <button onclick="toggleDebugPanel()" 
+                                    class="flex items-center gap-x-2 px-4 h-9 text-sm font-medium rounded-2xl text-blue-600 hover:bg-blue-50 transition-colors">
+                                <i class="fa-solid fa-microscope"></i>
+                                <span id="debug-toggle-text">도구 결과 보기</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Debug Panel -->
+                        <div id="debug-panel" class="hidden border-t bg-slate-900 text-slate-200">
+                            <div class="px-6 pt-4 pb-2 flex items-center justify-between">
+                                <div class="text-xs font-semibold tracking-widest text-slate-400">TOOL RESULTS &amp; RAW DATA</div>
+                                <button onclick="copyDebugJson()" 
+                                        class="text-xs flex items-center gap-x-1 px-3 py-1 rounded-lg hover:bg-slate-800 transition-colors">
+                                    <i class="fa-solid fa-copy text-[10px]"></i>
+                                    <span class="font-medium">JSON 복사</span>
+                                </button>
+                            </div>
+                            <div class="px-6 pb-5">
+                                <pre id="debug-json" 
+                                     class="text-[12.5px] leading-[1.55] overflow-auto max-h-[280px] bg-black/40 p-4 rounded-2xl font-mono"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- History Sidebar -->
+            <div class="xl:col-span-5">
+                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden h-full flex flex-col">
+                    <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+                        <div class="flex items-center gap-x-2">
+                            <i class="fa-solid fa-history text-slate-400"></i>
+                            <div class="font-semibold">최근 분석 기록</div>
+                        </div>
+                        <div id="history-count" 
+                             class="text-[10px] font-mono bg-white border px-2 py-px rounded-full text-slate-400"></div>
+                    </div>
+                    
+                    <div id="history-list" class="flex-1 overflow-auto divide-y text-sm max-h-[520px]">
+                        <!-- Populated by JS -->
+                        <div class="px-6 py-8 text-center text-slate-400 text-sm">
+                            아직 분석 기록이 없습니다.<br>
+                            질문을 입력하고 분석을 실행해보세요.
+                        </div>
+                    </div>
+                    
+                    <div class="border-t bg-slate-50 px-4 py-3 text-xs flex justify-end">
+                        <button onclick="clearAllHistory()" 
+                                class="text-red-500 hover:text-red-600 flex items-center gap-x-1.5 px-3 py-1">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                            <span class="font-medium">전체 삭제</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white text-sm px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-x-3">
+        <span id="toast-message"></span>
     </div>
 
     <script>
-        async function sendQuery() {
-            const queryText = document.getElementById('query').value.trim();
-            const resultDiv = document.getElementById('result');
+        // Tailwind script
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#1e40af');
+        }
+        
+        // Intent styling
+        const INTENT_META = {
+            'anomaly':     { label: '이상 행동 탐지', color: 'bg-red-100 text-red-700 border-red-200', icon: 'fa-exclamation-triangle' },
+            'recommendation': { label: '명령어 추천', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: 'fa-lightbulb' },
+            'query':       { label: '로그 조회', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: 'fa-search' },
+            'compliance':  { label: '컴플라이언스', color: 'bg-violet-100 text-violet-700 border-violet-200', icon: 'fa-balance-scale' },
+            'incident':    { label: '인시던트 조사', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: 'fa-bug' },
+            'general':     { label: '일반', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'fa-info-circle' }
+        };
+        
+        let currentResult = null;
+        let history = [];
+        
+        // Load history from localStorage
+        function loadHistory() {
+            try {
+                const saved = localStorage.getItem('cw_history');
+                history = saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                history = [];
+            }
+            renderHistory();
+        }
+        
+        function saveHistory() {
+            try {
+                localStorage.setItem('cw_history', JSON.stringify(history.slice(0, 30)));
+            } catch (e) {}
+        }
+        
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            const countEl = document.getElementById('history-count');
             
-            if (!queryText) {
-                alert("질문을 입력해주세요.");
+            countEl.textContent = history.length;
+            
+            if (history.length === 0) {
+                container.innerHTML = `
+                    <div class="px-6 py-8 text-center text-slate-400 text-sm">
+                        아직 분석 기록이 없습니다.<br>
+                        질문을 입력하고 분석을 실행해보세요.
+                    </div>`;
                 return;
             }
             
-            resultDiv.innerHTML = "<p>분석 중입니다... 잠시만 기다려주세요.</p>";
+            container.innerHTML = '';
+            
+            history.forEach((item, idx) => {
+                const meta = INTENT_META[item.intent] || INTENT_META['general'];
+                const div = document.createElement('div');
+                div.className = `history-item px-5 py-[13px] cursor-pointer flex gap-3 items-start`;
+                div.innerHTML = `
+                    <div class="mt-0.5">
+                        <span class="inline-block w-2 h-2 rounded-full mt-1.5 ${meta.color.replace('100', '500').replace('text-', 'bg-').split(' ')[0]}"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-slate-700 text-[13.5px] truncate">${item.query}</span>
+                        </div>
+                        <div class="flex items-center gap-x-2 mt-1">
+                            <span class="text-[10px] px-2 py-px rounded ${meta.color} font-semibold">${meta.label}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${item.execution_time}s</span>
+                        </div>
+                    </div>
+                `;
+                div.onclick = () => loadFromHistory(idx);
+                container.appendChild(div);
+            });
+        }
+        
+        function addToHistory(resultData) {
+            const entry = {
+                ...resultData,
+                timestamp: new Date().toISOString()
+            };
+            history.unshift(entry);
+            if (history.length > 30) history.pop();
+            saveHistory();
+            renderHistory();
+        }
+        
+        function loadFromHistory(index) {
+            const item = history[index];
+            if (!item) return;
+            
+            // Fill input
+            document.getElementById('query-input').value = item.query;
+            
+            // Show result immediately from history
+            currentResult = item;
+            renderResult(item);
+            
+            // Scroll to result
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function clearAllHistory() {
+            if (!confirm('모든 분석 기록을 삭제할까요?')) return;
+            history = [];
+            localStorage.removeItem('cw_history');
+            renderHistory();
+            showToast('히스토리가 초기화되었습니다.');
+        }
+        
+        // Use example
+        function useExample(text) {
+            const input = document.getElementById('query-input');
+            input.value = text;
+            input.focus();
+            
+            // Optional: auto submit after short delay
+            // setTimeout(() => submitQuery(), 450);
+        }
+        
+        // Submit query
+        async function submitQuery() {
+            const input = document.getElementById('query-input');
+            const query = input.value.trim();
+            
+            if (!query) {
+                showToast('질문을 입력해주세요.');
+                input.focus();
+                return;
+            }
+            
+            const resultSection = document.getElementById('result-section');
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Loading state
+            renderLoadingState(query);
             
             try {
                 const response = await fetch('/query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: queryText })
+                    body: JSON.stringify({ query: query })
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    resultDiv.innerHTML = `
-                        <strong>Intent:</strong> ${data.intent}<br><br>
-                        <strong>답변:</strong><br>
-                        ${data.response}
-                        <hr>
-                        <small>소요시간: ${data.execution_time}초</small>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `<span style="color:red;">오류: ${data.error}</span>`;
+                if (!data.success) {
+                    throw new Error(data.error || '서버 오류가 발생했습니다.');
                 }
-            } catch (e) {
-                resultDiv.innerHTML = `<span style="color:red;">서버와의 통신에 실패했습니다.</span>`;
+                
+                const resultData = {
+                    query: query,
+                    intent: data.intent,
+                    response: data.response,
+                    execution_time: data.execution_time,
+                    tool_results: data.tool_results || null,
+                    structured_response: data.structured_response || null
+                };
+                
+                currentResult = resultData;
+                addToHistory(resultData);
+                renderResult(resultData);
+                
+            } catch (err) {
+                renderErrorState(query, err.message);
             }
         }
+        
+        function renderLoadingState(query) {
+            const section = document.getElementById('result-section');
+            section.classList.remove('hidden');
+            
+            document.getElementById('intent-badge').innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> 분석 중...
+            `;
+            document.getElementById('intent-badge').className = `intent-badge px-4 py-1 bg-slate-100 text-slate-500 border border-slate-200`;
+            
+            document.getElementById('response-content').innerHTML = `
+                <div class="flex items-center gap-x-3 text-slate-500">
+                    <i class="fa-solid fa-robot fa-beat"></i>
+                    <span>Router가 의도를 판단하고 전문 에이전트를 호출 중입니다...</span>
+                </div>
+            `;
+            
+            document.getElementById('result-meta').innerHTML = '';
+            document.getElementById('exec-time').textContent = '...';
+            document.getElementById('debug-panel').classList.add('hidden');
+        }
+        
+        function renderErrorState(query, message) {
+            const badge = document.getElementById('intent-badge');
+            badge.innerHTML = `<i class="fa-solid fa-exclamation-circle mr-1.5"></i> 오류`;
+            badge.className = `intent-badge px-4 py-1 bg-red-100 text-red-700 border-red-200`;
+            
+            document.getElementById('response-content').innerHTML = `
+                <div class="text-red-600">
+                    <strong>분석에 실패했습니다.</strong><br>
+                    <span class="text-sm">${message}</span>
+                </div>
+            `;
+            document.getElementById('exec-time').textContent = '-';
+        }
+        
+        function renderResult(data) {
+            const meta = INTENT_META[data.intent] || INTENT_META['general'];
+            
+            // Badge
+            const badge = document.getElementById('intent-badge');
+            badge.innerHTML = `<i class="fa-solid ${meta.icon} mr-1.5"></i> ${meta.label}`;
+            badge.className = `intent-badge px-4 py-1 text-sm font-semibold ${meta.color}`;
+            
+            // Meta
+            document.getElementById('exec-time').textContent = `${data.execution_time}초`;
+            document.getElementById('result-meta').innerHTML = `
+                <div class="text-xs px-3 py-1 bg-white border rounded-2xl text-slate-500 flex items-center gap-1">
+                    <i class="fa-solid fa-user text-[10px]"></i> 
+                    <span>${data.query.length > 42 ? data.query.substring(0, 40) + '...' : data.query}</span>
+                </div>
+            `;
+            
+            // Response - Markdown 지원 (Compliance, Incident, Recommendation 등)
+            const contentEl = document.getElementById('response-content');
+            const rawResponse = data.response || '(응답 없음)';
+            
+            // marked.js가 로드되어 있으면 Markdown 렌더링, 아니면 일반 텍스트
+            if (window.marked && typeof window.marked.parse === 'function') {
+                try {
+                    contentEl.innerHTML = window.marked.parse(rawResponse);
+                    // Markdown 렌더링 시에는 pre-wrap 제거 (이미 스타일이 적용됨)
+                    contentEl.classList.remove('whitespace-pre-wrap');
+                } catch (e) {
+                    contentEl.textContent = rawResponse;
+                    contentEl.classList.add('whitespace-pre-wrap');
+                }
+            } else {
+                contentEl.textContent = rawResponse;
+                contentEl.classList.add('whitespace-pre-wrap');
+            }
+            
+            // Debug
+            const debugPanel = document.getElementById('debug-panel');
+            const debugJson = document.getElementById('debug-json');
+            
+            const debugData = {
+                intent: data.intent,
+                tool_results: data.tool_results || null,
+                structured_response: data.structured_response || null
+            };
+            
+            debugJson.textContent = JSON.stringify(debugData, null, 2);
+            
+            // Hide debug by default
+            debugPanel.classList.add('hidden');
+            document.getElementById('debug-toggle-text').textContent = '도구 결과 보기';
+        }
+        
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debug-panel');
+            const text = document.getElementById('debug-toggle-text');
+            
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                text.textContent = '도구 결과 숨기기';
+            } else {
+                panel.classList.add('hidden');
+                text.textContent = '도구 결과 보기';
+            }
+        }
+        
+        function copyResponse() {
+            if (!currentResult) return;
+            
+            navigator.clipboard.writeText(currentResult.response).then(() => {
+                showToast('응답이 클립보드에 복사되었습니다.');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = currentResult.response;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('응답이 복사되었습니다.');
+            });
+        }
+        
+        function copyDebugJson() {
+            if (!currentResult) return;
+            
+            const debugData = {
+                intent: currentResult.intent,
+                tool_results: currentResult.tool_results,
+                structured_response: currentResult.structured_response
+            };
+            
+            navigator.clipboard.writeText(JSON.stringify(debugData, null, 2)).then(() => {
+                showToast('디버그 JSON이 복사되었습니다.');
+            });
+        }
+        
+        function runAgain() {
+            if (!currentResult) return;
+            document.getElementById('query-input').value = currentResult.query;
+            submitQuery();
+        }
+        
+        // Toast helper
+        let toastTimeout = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = msg;
+            
+            toast.classList.remove('hidden');
+            toast.style.display = 'flex';
+            
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2600);
+        }
+        
+        // Keyboard support
+        function setupKeyboard() {
+            const input = document.getElementById('query-input');
+            
+            input.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    submitQuery();
+                }
+            });
+            
+            // Auto focus on load
+            setTimeout(() => {
+                // input.focus();
+            }, 800);
+        }
+        
+        function setupExampleAutoSubmitHint() {
+            // Optional: user can hold Shift while clicking example for direct submit
+            document.querySelectorAll('.example-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.shiftKey) {
+                        setTimeout(() => {
+                            const input = document.getElementById('query-input');
+                            if (input.value) submitQuery();
+                        }, 80);
+                    }
+                });
+            });
+        }
+        
+        // Initialize everything
+        function initializeApp() {
+            initTailwind();
+            loadHistory();
+            setupKeyboard();
+            setupExampleAutoSubmitHint();
+
+            // Marked.js 설정 (더 나은 Markdown 렌더링)
+            if (window.marked && typeof window.marked.setOptions === 'function') {
+                window.marked.setOptions({
+                    breaks: true,           // Enter로 줄바꿈 허용
+                    gfm: true,              // GitHub Flavored Markdown 지원
+                    headerIds: false,       // 불필요한 id 생성 방지
+                });
+            }
+            
+            // Nice welcome toast on first visit (only once per session)
+            if (!sessionStorage.getItem('cw_welcomed')) {
+                setTimeout(() => {
+                    // showToast('Shift+클릭으로 예시를 바로 실행할 수 있습니다.');
+                    sessionStorage.setItem('cw_welcomed', '1');
+                }, 3200);
+            }
+            
+            // Expose some debug helpers in console
+            window.CW = { clearHistory: clearAllHistory, getHistory: () => history };
+            
+            console.log('%c[Command Watcher UI] Modern UI initialized. Try CW.getHistory() in console.', 'color:#64748b;font-size:9px');
+        }
+        
+        // Boot
+        window.onload = initializeApp;
     </script>
 </body>
 </html>

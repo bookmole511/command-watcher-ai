@@ -1,9 +1,10 @@
 # src/api/main.py
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional
 import time
+from pathlib import Path
 
 from src.config import (
     LLM_MODEL,
@@ -40,79 +41,13 @@ class QueryRequest(BaseModel):
     thread_id: Optional[str] = "default"
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=FileResponse)
 async def home():
-    """간단한 웹 UI"""
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="ko">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Command Watcher AI</title>
-        <style>
-            body { font-family: 'Malgun Gothic', sans-serif; margin: 30px; background: #f0f2f5; }
-            .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-            h1 { color: #1e3a8a; }
-            textarea { width: 100%; height: 130px; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
-            button { padding: 14px 28px; font-size: 17px; background: #1e40af; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-            button:hover { background: #1e3a8a; }
-            #result { margin-top: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 10px; min-height: 250px; background: #fafafa; white-space: pre-wrap; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🛠️ Command Watcher AI</h1>
-            <p>서버 명령어 이력을 자연어로 분석해드립니다.</p>
-            
-            <textarea id="query" placeholder="예시) 지난 7일간 sudo를 가장 많이 사용한 사람은 누구야?"></textarea>
-            <br><br>
-            <button onclick="sendQuery()">🔍 분석하기</button>
-            
-            <div id="result"></div>
-        </div>
-
-        <script>
-            async function sendQuery() {
-                const queryText = document.getElementById('query').value.trim();
-                const resultDiv = document.getElementById('result');
-                
-                if (!queryText) {
-                    alert("질문을 입력해주세요.");
-                    return;
-                }
-                
-                resultDiv.innerHTML = "<p><strong>분석 중입니다...</strong> 잠시만 기다려주세요.</p>";
-                
-                try {
-                    const response = await fetch('/query', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query: queryText })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        resultDiv.innerHTML = `
-                            <strong>Intent:</strong> ${data.intent}<br><br>
-                            <strong>답변:</strong><br>
-                            ${data.response}
-                            <hr>
-                            <small>⏱ 소요시간: ${data.execution_time}초</small>
-                        `;
-                    } else {
-                        resultDiv.innerHTML = `<span style="color:red;">❌ 오류: ${data.error}</span>`;
-                    }
-                } catch (e) {
-                    resultDiv.innerHTML = `<span style="color:red;">❌ 서버와 연결할 수 없습니다.</span>`;
-                }
-            }
-        </script>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+    """현대적인 Command Watcher AI UI"""
+    template_path = Path(__file__).parent.parent.parent / "templates" / "index.html"
+    if template_path.exists():
+        return FileResponse(str(template_path), media_type="text/html")
+    return HTMLResponse("<h1>UI 템플릿을 찾을 수 없습니다. templates/index.html 파일을 확인하세요.</h1>")
 
 
 @app.post("/query")
@@ -131,13 +66,18 @@ async def query(request: QueryRequest):
             "success": True,
             "intent": result.get("intent", "unknown"),
             "response": result.get("final_response", "응답을 생성할 수 없습니다."),
-            "execution_time": round(time.time() - start_time, 2)
+            "execution_time": round(time.time() - start_time, 2),
+            # 새로운 UI의 디버그 패널을 위한 추가 데이터
+            "tool_results": result.get("tool_results"),
+            "structured_response": result.get("structured_response"),
         }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "execution_time": round(time.time() - start_time, 2)
+            "execution_time": round(time.time() - start_time, 2),
+            "tool_results": None,
+            "structured_response": None,
         }
 
 

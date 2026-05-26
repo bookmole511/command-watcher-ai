@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 from src.tools.anomaly_detector import anomaly_detection_tool
 from src.tools.mysql_tool import mysql_query_tool
+from src.utils import json_safe
 
 
 class AnomalyResult(BaseModel):
@@ -98,10 +99,12 @@ class AnomalyAgent:
             "user_risk": _json_safe(user_risk_result),
             "command_risk": _json_safe(command_result),
             "session_risk": _json_safe(session_result),
-            "structured_result": result_payload,
+            "structured_result": json_safe(result_payload),
         }
         state["structured_response"] = result_payload
-        state["final_response"] = json.dumps(result_payload, ensure_ascii=False)
+        # 사용자에게는 읽기 쉬운 자연어 보고서 제공
+        # (상세 JSON 데이터는 structured_response + tool_results["anomaly"]에 보관)
+        state["final_response"] = _format_anomaly_for_user(structured_result)
         state.setdefault("messages", []).append(
             AIMessage(content=state["final_response"])
         )
@@ -404,3 +407,62 @@ def _model_to_dict(model: BaseModel) -> Dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump()
     return model.dict()
+
+
+def _format_anomaly_for_user(result: AnomalyResult) -> str:
+    """
+    사용자가 이해하기 쉬운 Markdown 형식으로 이상 탐지 결과를 포맷팅.
+    UI에서 예쁘게 렌더링될 수 있도록 Markdown 문법 적극 활용.
+    """
+    lines: list[str] = []
+
+    score = result.anomaly_score
+    level = "높음" if score >= 0.7 else "중간" if score >= 0.4 else "낮음"
+
+    lines.append(f"## 이상 행동 분석 결과")
+    lines.append(f"**전체 위험도**: {score:.3f} ({level})")
+    lines.append("")
+
+    # Summary
+    lines.append(result.summary)
+    lines.append("")
+
+    # Top users
+    if result.top_anomalous_users:
+        lines.append("### 주요 의심 사용자 (상위)")
+        for u in result.top_anomalous_users[:5]:
+            name = u.get("user_name", "?")
+            risk = u.get("risk_score", 0)
+            cmd = u.get("cmd_count", 0)
+            fail = u.get("failure_count", 0)
+            iso = " ⚠️ IsolationForest 이상" if u.get("isolation_forest_anomaly") else ""
+            lines.append(f"- **{name}**: 위험도 `{risk:.3f}` | 명령 {cmd}회, 실패 {fail}회{iso}")
+        lines.append("")
+
+    # Risky commands
+    if result.top_anomalous_commands:
+        lines.append("### 위험 명령어 패턴")
+        for c in result.top_anomalous_commands[:6]:
+            cmd = c.get("command", "")
+            hits = c.get("risk_hits", 0)
+            users = c.get("user_count", 1)
+            lines.append(f"- `{cmd}` (사용자 {users}명, 위험 히트 {hits})")
+        lines.append("")
+
+    # Suspicious sessions
+    if result.suspicious_sessions:
+        lines.append("### 의심스러운 세션 (일부)")
+        for s in result.suspicious_sessions[:4]:
+            sid = s.get("session_id")
+            user = s.get("user_name")
+            cip = s.get("client_ip")
+            lines.append(f"- `{sid}` ({user} @ {cip})")
+        lines.append("")
+
+    # Recommendations
+    if result.recommendations:
+        lines.append("### 권고사항")
+        for i, rec in enumerate(result.recommendations, 1):
+            lines.append(f"{i}. {rec}")
+
+    return "\n".join(lines).strip()
